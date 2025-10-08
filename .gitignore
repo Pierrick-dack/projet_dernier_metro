@@ -1,0 +1,20 @@
+# Node.js modules
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environnement
+.env
+
+# Coverage reports
+#coverage/
+
+# Build outputs
+dist/
+build/
+
+# MacOS / Windows / Linux system files
+.DS_Store
+Thumbs.db
