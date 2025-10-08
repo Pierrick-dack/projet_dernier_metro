@@ -1,0 +1,357 @@
+openapi: 3.0.0
+info:
+  title: Projet Dernier Metro - API
+  version: "1.0.0"
+  description: API pour consulter les horaires des derniers métros parisiens ; Réalisé dans le cadre du projet de Renforcement dev web.
+  contact:
+    name: Kamela Pierrick Dack
+    email: pierrick.kamela@efrei.net
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Serveur de développement
+
+tags:
+  - name: Health
+    description: Endpoints de santé du service
+  - name: Metro
+    description: Consultation des horaires de métro
+
+paths:
+  /:
+    get:
+      summary: Page d'accueil de l'API
+      tags: []
+      responses:
+        "200":
+          description: Message de bienvenue
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Hello depuis Docker 🚀"
+
+  /health:
+    get:
+      summary: Vérifie l'état de santé de l'API
+      tags: [Health]
+      responses:
+        "200":
+          description: API opérationnelle
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                required:
+                  - status
+          examples:
+            success:
+              summary: Santé OK
+              value:
+                status: "ok"
+
+  /db-health:
+    get:
+      summary: Vérifie la connexion à la base de données
+      tags: [Health]
+      responses:
+        "200":
+          description: Base de données accessible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  db:
+                    type: string
+                  result:
+                    type: object
+                required:
+                  - status
+                  - db
+          examples:
+            success:
+              summary: Connexion DB OK
+              value:
+                status: "ok"
+                db: "connected"
+                result:
+                  ok: 1
+        "500":
+          description: Erreur de connexion à la base de données
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          examples:
+            db_error:
+              summary: DB injoignable
+              value:
+                error: "database error"
+                code: "DATABASE_ERROR"
+
+  /next-metro:
+    get:
+      summary: Obtenir les prochains passages de métro
+      description: Retourne les N prochains horaires de passage pour une station donnée
+      tags: [Metro]
+      parameters:
+        - in: query
+          name: station
+          schema:
+            type: string
+          required: true
+          description: Nom de la station de métro
+          example: "Chatelet"
+        - in: query
+          name: n
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+            default: 1
+          required: false
+          description: Nombre d'horaires à retourner (1-5)
+          example: 3
+      responses:
+        "200":
+          description: Horaires des prochains métros
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/NextMetroSingleResponse'
+                  - $ref: '#/components/schemas/NextMetroMultipleResponse'
+                  - $ref: '#/components/schemas/ServiceClosedResponse'
+          examples:
+            single:
+              summary: Un seul horaire demandé
+              value:
+                station: "Chatelet"
+                line: "M7"
+                headwayMin: 5
+                nextArrival: "23:45"
+                isLast: true
+                tz: "Europe/Paris"
+            multiple:
+              summary: Plusieurs horaires demandés
+              value:
+                station: "Chatelet"
+                line: "M7"
+                headwayMin: 5
+                tz: "Europe/Paris"
+                arrivals:
+                  - nextArrival: "23:45"
+                    isLast: true
+                  - nextArrival: "23:50"
+                    isLast: true
+            closed:
+              summary: Service fermé
+              value:
+                service: "closed"
+                tz: "Europe/Paris"
+        "400":
+          description: Paramètre station manquant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          examples:
+            missing_station:
+              value:
+                error: "missing station"
+                code: "MISSING_STATION"
+        "404":
+          description: Station inconnue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          examples:
+            unknown_station:
+              value:
+                error: "unknown station"
+                code: "STATION_NOT_FOUND"
+                suggestions: ["Chatelet", "Gare de Lyon", "Concorde"]
+        "500":
+          description: Erreur interne du serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          examples:
+            internal_error:
+              value:
+                error: "Internal server error"
+
+  /last-metro:
+    get:
+      summary: Obtenir l'heure du dernier métro parti
+      description: Retourne l'horaire de départ du dernier métro pour une station donnée
+      tags: [Metro]
+      parameters:
+        - name: station
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "République"
+          description: Nom de la station de métro
+      responses:
+        '200':
+          description: Dernier métro trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LastMetroResponse'
+          examples:
+            success:
+              summary: Dernier métro trouvé
+              value:
+                station: "République"
+                departed_at: "00:30:00"
+        '400':
+          description: Paramètre station manquant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          examples:
+            missing_param:
+              value:
+                error: "missing station"
+                code: "MISSING_STATION"
+        '404':
+          description: Station inconnue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          examples:
+            not_found:
+              value:
+                error: "station not found"
+                code: "STATION_NOT_FOUND"
+                station: "Inconnue"
+        '500':
+          description: Erreur technique de la base de données
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          examples:
+            db_error:
+              value:
+                error: "database error"
+                code: "DATABASE_ERROR"
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Message d'erreur lisible
+        code:
+          type: string
+          description: Code d'erreur machine
+        station:
+          type: string
+          description: Nom de la station concernée (le cas échéant)
+        suggestions:
+          type: array
+          items:
+            type: string
+          description: Suggestions de stations similaires
+      required:
+        - error
+
+    ServiceClosedResponse:
+      type: object
+      properties:
+        service:
+          type: string
+          enum: [closed]
+        tz:
+          type: string
+      required:
+        - service
+        - tz
+
+    NextMetroSingleResponse:
+      type: object
+      properties:
+        station:
+          type: string
+        line:
+          type: string
+        headwayMin:
+          type: integer
+        nextArrival:
+          type: string
+          pattern: '^[0-9]{2}:[0-9]{2}$'
+        isLast:
+          type: boolean
+        tz:
+          type: string
+      required:
+        - station
+        - line
+        - headwayMin
+        - nextArrival
+        - isLast
+        - tz
+
+    NextMetroMultipleResponse:
+      type: object
+      properties:
+        station:
+          type: string
+        line:
+          type: string
+        headwayMin:
+          type: integer
+        tz:
+          type: string
+        arrivals:
+          type: array
+          items:
+            type: object
+            properties:
+              nextArrival:
+                type: string
+                pattern: '^[0-9]{2}:[0-9]{2}$'
+              isLast:
+                type: boolean
+            required:
+              - nextArrival
+              - isLast
+      required:
+        - station
+        - line
+        - headwayMin
+        - tz
+        - arrivals
+
+    LastMetroResponse:
+      type: object
+      properties:
+        station:
+          type: string
+        departed_at:
+          type: string
+          format: time
+          pattern: '^[0-9]{2}:[0-9]{2}:[0-9]{2}$'
+      required:
+        - station
+        - departed_at

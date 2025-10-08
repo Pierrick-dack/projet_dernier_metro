@@ -1,26 +1,16 @@
-# Utiliser Node 18 alpine léger
 FROM node:18-alpine
 
-# Définir le répertoire de travail
 WORKDIR /app
 
-# Copier package.json et package-lock.json (si existants)
+# Copier les fichiers de dépendances d'abord
 COPY package*.json ./
 
-# Installer les dépendances
-RUN npm install --production
+# Installer toutes les dépendances (dont pg)
+RUN npm install
 
-# Copier tout le code de l'application
+# Copier le reste de l'application
 COPY . .
 
-# Définition des variables d'environnement par défaut pour le bonus
-ENV PORT=3000
-ENV HEADWAY_MIN=3
-ENV LAST_WINDOW_START=00:45
-ENV SERVICE_END=01:15
-
-# Exposer le port
 EXPOSE 3000
 
-# Commande par défaut
 CMD ["node", "server.js"]

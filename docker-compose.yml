@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  dernier-metro-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.v1
+    container_name: dernier-metro-api
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - HEADWAY_MIN=3
+      - LAST_WINDOW_START=00:45
+      - SERVICE_END=01:15
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=rnbking2001
+      - DB_NAME=postgres
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    container_name: metro-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: rnbking2001
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # Ajout du script d'initialisation
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: swagger-ui
+    ports:
+      - "8080:8080"
+    environment:
+      - API_URL=http://dernier-metro-api:3000/api-docs/json
+    depends_on:
+      - dernier-metro-api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

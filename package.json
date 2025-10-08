@@ -3,13 +3,40 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "Projet Dernier-Métro "
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["metro", "api", "express", "postgresql"],
+  "author": "Votre Nom",
   "license": "ISC",
-  "description": "",
+  "description": "API pour consulter les horaires des derniers métros parisiens",
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "js-yaml": "^4.1.0",
+    "pg": "^8.16.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "supertest": "^6.3.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/__tests__/**/*.test.js",
+      "**/__tests__/**/*.spec.js",
+      "**/*.test.js",
+      "**/*.spec.js"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "lib/**/*.js",
+      "!**/node_modules/**"
+    ]
   }
 }
