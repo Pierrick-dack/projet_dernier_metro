@@ -65,3 +65,4 @@ security:trivy:
   only:
     - main
     - merge_requests
+
