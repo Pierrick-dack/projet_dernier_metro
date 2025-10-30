@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  api:
+    image: registry.gitlab.com/kamelapierrick/projet_dernier_metro:latest
+    container_name: dernier_metro_api_staging
+    environment:
+      - NODE_ENV=staging
+      - PGHOST=postgres
+      - PGDATABASE=dernier_metro_staging
+    ports:
+      - "3001:3000"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=dernier_metro_staging
+      - POSTGRES_PASSWORD=${PGPASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
