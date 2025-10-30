@@ -24,14 +24,21 @@ build:
     name: gcr.io/kaniko-project/executor:v1.9.0-debug
     entrypoint: [""]
   before_script:
-    - cd api
+    - echo "🔍 Checking files..."
+    - pwd
+    - ls -la
+    - echo "📦 Checking API directory..."
+    - ls -la api/
+    - echo "🐳 Checking Dockerfile..."
+    - cat api/Dockerfile || echo "❌ Dockerfile not found"
   script:
     - echo "🔨 Building Docker images..."
     - /kaniko/executor
-      --context "${CI_PROJECT_DIR}/api"
-      --dockerfile "${CI_PROJECT_DIR}/api/Dockerfile"
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "api/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:latest"
       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
       --cache=true
+    - echo "✅ Build successful!"
   only:
     - main
