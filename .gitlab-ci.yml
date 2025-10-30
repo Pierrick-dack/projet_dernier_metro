@@ -18,7 +18,7 @@ test:
     - main
     - merge_requests
 
-# Scan des dépendances npm - FONCTIONNE DÉJÀ ✅
+# Scan des dépendances npm - CORRIGÉ
 security:npm-audit:
   stage: security
   image: node:18-alpine
@@ -51,7 +51,7 @@ build:
   only:
     - main
 
-# Scan de l'image Docker - CORRIGÉ ✅
+# Scan de l'image Docker - CORRIGÉ
 security:trivy:
   stage: security-image
   image: alpine:latest
