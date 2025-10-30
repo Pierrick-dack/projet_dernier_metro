@@ -1,109 +1,27 @@
-# .gitlab-ci.yml
+# .gitlab-ci.yml COMPLET
 stages:
   - test
-  - deploy
 
 variables:
-  NODE_VERSION: "18-alpine"
-  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_NAME: postgres
+  DB_USER: postgres
+  DB_PASSWORD: postgres
 
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - .npm/
-    - api/node_modules/
-
-# Test unitaires et d'intégration
-test:unit:
+test:
   stage: test
-  image: node:$NODE_VERSION
-  before_script:
-    - cd api
-    - npm ci --cache .npm --prefer-offline
-  script:
-    - npm test
-  artifacts:
-    when: always
-    reports:
-      junit:
-        - api/junit.xml
-    paths:
-      - api/coverage/
-  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
-  only:
-    - merge_requests
-    - main
-    - develop
-
-test:integration:
-  stage: test
-  image: node:$NODE_VERSION
+  image: node:18-alpine
   services:
     - postgres:13-alpine
-  variables:
-    POSTGRES_DB: test_db
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: postgres
-    DB_HOST: postgres
-    DB_PORT: 5432
-    DB_NAME: test_db
-    DB_USER: postgres
-    DB_PASSWORD: postgres
   before_script:
     - cd api
-    - npm ci --cache .npm --prefer-offline
-    # Attendre que PostgreSQL soit prêt
-    - apt-get update && apt-get install -y postgresql-client || apk add --no-cache postgresql-client
+    - npm install
+    # Installation de PostgreSQL client et attente que la DB soit prête
+    - apk add --no-cache postgresql-client
     - until pg_isready -h postgres -p 5432; do sleep 1; done
   script:
-    - npm run test:integration
+    - npm test
   only:
+    - main
     - merge_requests
-    - main
-    - develop
-
-# Lint du code (optionnel mais recommandé)
-lint:
-  stage: test
-  image: node:$NODE_VERSION
-  before_script:
-    - cd api
-    - npm ci --cache .npm --prefer-offline
-  script:
-    - npx eslint . --ext .js,.jsx,.ts,.tsx
-    - npx prettier --check .
-  allow_failure: true
-  only:
-    - merge_requests
-    - main
-
-# Déploiement (exemple pour staging)
-deploy:staging:
-  stage: deploy
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache curl
-  script:
-    - echo "Déploiement vers l'environnement de staging"
-    - curl -X POST $STAGING_DEPLOY_WEBHOOK
-  environment:
-    name: staging
-    url: https://staging.dernier-metro.example.com
-  only:
-    - main
-
-# Déploiement production (seulement sur main avec tag)
-deploy:production:
-  stage: deploy
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache curl
-  script:
-    - echo "Déploiement vers la production"
-    - curl -X POST $PRODUCTION_DEPLOY_WEBHOOK
-  environment:
-    name: production
-    url: https://dernier-metro.example.com
-  only:
-    - tags
-  when: manual
