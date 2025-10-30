@@ -33,8 +33,6 @@ security:npm-audit:
     when: always
     reports:
       sast: api/npm-audit-report.json
-    paths:
-      - api/npm-audit-report.json
     expire_in: 1 week
   allow_failure: true
   only:
@@ -61,19 +59,16 @@ build:
 security:trivy:
   stage: security-image
   image: aquasec/trivy:latest
-  before_script:
+  script:
     - trivy --version
     - echo "🔍 Scanning Docker image: ${CI_REGISTRY_IMAGE}:latest"
-  script:
-    - trivy image --severity HIGH,CRITICAL --format sarif --output trivy-report.sarif ${CI_REGISTRY_IMAGE}:latest
+    - trivy image --severity HIGH,CRITICAL --format gitlab ${CI_REGISTRY_IMAGE}:latest > gl-container-scanning-report.json
     - echo "📊 Trivy Scan Results:"
     - trivy image --severity HIGH,CRITICAL ${CI_REGISTRY_IMAGE}:latest
   artifacts:
     when: always
     reports:
-      sast: trivy-report.sarif
-    paths:
-      - trivy-report.sarif
+      container_scanning: gl-container-scanning-report.json
     expire_in: 1 week
   allow_failure: true
   only:
