@@ -1,8 +1,11 @@
-# .gitlab-ci.yml - VERSION SIMPLIFIÉE
+# .gitlab-ci.yml - AVEC SCANS SÉCURITÉ S10
 stages:
   - test
+  - security
   - build
+  - security-image
 
+# Test unitaires
 test:
   stage: test
   image: node:18-alpine
@@ -15,6 +18,30 @@ test:
     - main
     - merge_requests
 
+# Scan des dépendances npm
+security:npm-audit:
+  stage: security
+  image: node:18-alpine
+  before_script:
+    - cd api
+  script:
+    - echo "🔍 Scanning npm dependencies..."
+    - npm audit --audit-level=moderate --json > npm-audit-report.json || true
+    - echo "📊 NPM Audit Results:"
+    - npm audit --audit-level=moderate
+  artifacts:
+    when: always
+    reports:
+      sast: npm-audit-report.json
+    paths:
+      - api/npm-audit-report.json
+    expire_in: 1 week
+  allow_failure: true
+  only:
+    - main
+    - merge_requests
+
+# Build Docker
 build:
   stage: build
   image:
@@ -29,3 +56,29 @@ build:
       --cache=true
   only:
     - main
+
+# Scan de l'image Docker
+security:trivy:
+  stage: security-image
+  image:
+    name: aquasec/trivy:latest
+  before_script:
+    - trivy --version
+    - echo "🔍 Scanning Docker image: ${CI_REGISTRY_IMAGE}:latest"
+  script:
+    - trivy image --severity HIGH,CRITICAL --format sarif --output trivy-report.sarif ${CI_REGISTRY_IMAGE}:latest
+    - echo "📊 Trivy Scan Results:"
+    - trivy image --severity HIGH,CRITICAL ${CI_REGISTRY_IMAGE}:latest
+  artifacts:
+    when: always
+    reports:
+      container_scanning: trivy-report.sarif
+    paths:
+      - trivy-report.sarif
+    expire_in: 1 week
+  allow_failure: true
+  only:
+    - main
+    - merge_requests
+  dependencies:
+    - build

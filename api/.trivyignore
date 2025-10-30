@@ -1,0 +1,7 @@
+# api/.trivyignore
+# Ignorer les vulnérabilités spécifiques qui ne s'appliquent pas
+CVE-2021-44228  # Log4j - pas utilisé dans Node.js
+CVE-2022-24999  # Exemple de faux positif
+
+# Packages spécifiques à ignorer (si nécessaire)
+# node_modules/package-name/*
