@@ -32,7 +32,7 @@ security:npm-audit:
   artifacts:
     when: always
     reports:
-      sast: npm-audit-report.json
+      sast: api/npm-audit-report.json
     paths:
       - api/npm-audit-report.json
     expire_in: 1 week
@@ -71,7 +71,7 @@ security:trivy:
   artifacts:
     when: always
     reports:
-      container_scanning: trivy-report.sarif
+      sast: trivy-report.sarif
     paths:
       - trivy-report.sarif
     expire_in: 1 week
