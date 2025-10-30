@@ -29,8 +29,8 @@ build:
     - ls -la
     - echo "📦 Checking API directory..."
     - ls -la api/
-    - echo "🐳 Checking Dockerfile..."
-    - cat api/Dockerfile || echo "❌ Dockerfile not found"
+    - echo "🐳 Checking Dockerfile.v2..."
+    - cat api/Dockerfile.v2 || echo "❌ Dockerfile not found"
   script:
     - echo "🔨 Building Docker images..."
     - /kaniko/executor
