@@ -1,9 +1,8 @@
-# .gitlab-ci.yml - S09 COMPLET
+# .gitlab-ci.yml - VERSION SIMPLIFIÉE
 stages:
   - test
   - build
 
-# Test unitaires seulement (sans base de données)
 test:
   stage: test
   image: node:18-alpine
@@ -11,44 +10,22 @@ test:
     - cd api
     - npm install
   script:
-    - echo "🧪 Running unit tests..."
     - npm test
   only:
     - main
     - merge_requests
 
-# Build Docker avec Kaniko - OPTIMISÉ
 build:
   stage: build
   image:
     name: gcr.io/kaniko-project/executor:v1.9.0-debug
     entrypoint: [""]
-  before_script:
-    - echo "🔍 Configuration vérification..."
-    - echo "📦 Registry: ${CI_REGISTRY_IMAGE}"
-    - echo "🏷️ Tags: latest, ${CI_COMMIT_SHORT_SHA}"
-    - echo "📁 Working dir: $(pwd)"
-    - echo "🐳 Dockerfile content:"
-    - cat api/Dockerfile || echo "❌ Dockerfile not found"
   script:
-    - echo "🔨 Building and pushing Docker images..."
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
       --dockerfile "api/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:latest"
       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
       --cache=true
-      --cache-ttl=24h
-      --snapshotMode=redo
-      --use-new-run
-    - echo "✅ Build successful! Images pushed to GitLab Registry"
-    - echo "📊 Images available at:"
-    - echo "   - ${CI_REGISTRY_IMAGE}:latest"
-    - echo "   - ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
-  after_script:
-    - echo "🎉 S09 - Build & Push Docker en CI: COMPLETED"
-    - echo "✅ Two tags pushed: latest + commit SHA"
-    - echo "✅ GitLab Registry used"
-    - echo "✅ Docker cache enabled"
   only:
     - main
