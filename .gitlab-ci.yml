@@ -1,27 +1,37 @@
-# .gitlab-ci.yml COMPLET
+# .gitlab-ci.yml SIMPLIFIÉ
 stages:
   - test
+  - build
 
-variables:
-  DB_HOST: postgres
-  DB_PORT: 5432
-  DB_NAME: postgres
-  DB_USER: postgres
-  DB_PASSWORD: postgres
-
+# Test unitaires seulement (sans base de données)
 test:
   stage: test
   image: node:18-alpine
-  services:
-    - postgres:13-alpine
   before_script:
     - cd api
     - npm install
-    # Installation de PostgreSQL client et attente que la DB soit prête
-    - apk add --no-cache postgresql-client
-    - until pg_isready -h postgres -p 5432; do sleep 1; done
   script:
+    - echo "🧪 Running unit tests..."
     - npm test
   only:
     - main
     - merge_requests
+
+# Build Docker avec Kaniko
+build:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:v1.9.0-debug
+    entrypoint: [""]
+  before_script:
+    - cd api
+  script:
+    - echo "🔨 Building Docker images..."
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}/api"
+      --dockerfile "${CI_PROJECT_DIR}/api/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:latest"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+      --cache=true
+  only:
+    - main
