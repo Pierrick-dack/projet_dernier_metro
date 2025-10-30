@@ -1,4 +1,4 @@
-# .gitlab-ci.yml - AVEC SCANS SÉCURITÉ S10
+# .gitlab-ci.yml - AVEC SCANS SÉCURITÉ S10 CORRIGÉ
 stages:
   - test
   - security
@@ -60,8 +60,7 @@ build:
 # Scan de l'image Docker
 security:trivy:
   stage: security-image
-  image:
-    name: aquasec/trivy:latest
+  image: aquasec/trivy:latest
   before_script:
     - trivy --version
     - echo "🔍 Scanning Docker image: ${CI_REGISTRY_IMAGE}:latest"
@@ -80,5 +79,3 @@ security:trivy:
   only:
     - main
     - merge_requests
-  dependencies:
-    - build
