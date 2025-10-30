@@ -8,13 +8,23 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:verbose": "jest --verbose"
+    "test:verbose": "jest --verbose",
+    "test:integration": "jest tests/integration.test.js --verbose",
+    "test:all": "npm run test && npm run test:integration",
+    "db:init": "node -e \"require('./db/init').initializeDatabase()\"",
+    "db:check": "node -e \"require('./db/init').checkDatabaseConnection()\""
   },
-  "keywords": ["metro", "api", "express", "postgresql"],
+  "keywords": [
+    "metro",
+    "api",
+    "express",
+    "postgresql"
+  ],
   "author": "Votre Nom",
   "license": "ISC",
   "description": "API pour consulter les horaires des derniers métros parisiens",
   "dependencies": {
+    "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "js-yaml": "^4.1.0",
     "pg": "^8.16.3",
@@ -23,7 +33,7 @@
   },
   "devDependencies": {
     "jest": "^29.0.0",
-    "supertest": "^6.3.3"
+    "supertest": "^6.3.4"
   },
   "jest": {
     "testEnvironment": "node",

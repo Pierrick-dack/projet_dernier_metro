@@ -1,3 +1,4 @@
+-- db/init/001_schema.sql
 -- ========================================
 -- Création de la table des stations
 -- ========================================
@@ -21,7 +22,6 @@ INSERT INTO stations (name, line) VALUES
 ('Hotel de Ville', 'M7')
 ON CONFLICT (name) DO NOTHING;
 
-
 -- ========================================
 -- Création de la table des headways
 -- ========================================
@@ -43,4 +43,27 @@ INSERT INTO headways (station_id, minutes) VALUES
 (7, 8),
 (8, 5),
 (9, 6)
+ON CONFLICT DO NOTHING;
+
+-- ========================================
+-- Création de la table last_metro
+-- ========================================
+CREATE TABLE IF NOT EXISTS last_metro (
+    id SERIAL PRIMARY KEY,
+    station_id INT NOT NULL REFERENCES stations(id) ON DELETE CASCADE,
+    departed_at TIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insertion des données last_metro
+INSERT INTO last_metro (station_id, departed_at) VALUES
+(1, '01:15:00'),
+(2, '01:10:00'),
+(3, '01:05:00'),
+(4, '01:20:00'),
+(5, '01:25:00'),
+(6, '01:30:00'),
+(7, '01:35:00'),
+(8, '01:40:00'),
+(9, '01:45:00')
 ON CONFLICT DO NOTHING;

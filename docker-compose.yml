@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile.v1
     container_name: dernier-metro-api
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       - PORT=3000
       - HEADWAY_MIN=3
